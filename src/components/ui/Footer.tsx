@@ -3,7 +3,7 @@ import { Facebook, Instagram, Youtube } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer className="bg-white/95 border-t border-black/5 text-black">
+    <footer className="bg-white border-t border-black/5 text-black">
       <div className=" mx-auto px-8 py-10 grid md:grid-cols-2 gap-10 border-b border-black/10">
         <div>
           <p className="uppercase text-xs tracking-[0.15em] mb-3">Suscribirse a nuestra newsletter</p>

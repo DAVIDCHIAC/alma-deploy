@@ -22,7 +22,7 @@ export const Products = () => {
 
   const [products, setProducts] = useState<AdminProduct[]>([])
 
-  const API_BASE = (import.meta as any).env?.VITE_API_BASE || 'http://localhost:8000'
+  const API_BASE = (import.meta as any).env?.VITE_API_BASE
   const resolveImageUrl = (img?: string | null) => {
     if (!img) return '/placeholder.svg'
     if (/^https?:\/\//i.test(img)) return img
@@ -32,7 +32,7 @@ export const Products = () => {
   const fetchProducts = async () => {
     setLoading(true)
     try {
-      const API_BASE = (import.meta as any).env?.VITE_API_BASE || 'http://localhost:8000'
+      const API_BASE = (import.meta as any).env?.VITE_API_BASE
       const res = await fetch(`${API_BASE}/api/products`, { headers: { Accept: 'application/json' } })
       if (!res.ok) throw new Error('Error al cargar productos')
       const data = await res.json()
@@ -54,7 +54,7 @@ export const Products = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      const API_BASE = (import.meta as any).env?.VITE_API_BASE || 'http://localhost:8000'
+      const API_BASE = (import.meta as any).env?.VITE_API_BASE
       const res = await fetch(`${API_BASE}/api/products/${id}`, { method: 'DELETE', headers: { Accept: 'application/json' } })
       if (!res.ok) throw new Error('Error al eliminar')
       setProducts((prev) => prev.filter((p) => p.id !== id))

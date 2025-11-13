@@ -3,12 +3,11 @@ import bgTwo from "@/assets/bg-two.jpg";
 export const AboutView = () => {
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero */}
       <section
         className="h-[60vh] transparent relative overflow-hidden flex items-center justify-center bg-center bg-cover"
         style={{ backgroundImage: `url(${bgTwo})` }}
       >
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-black/70"></div>
         <div className="relative z-10 text-center text-white px-8">
           <h1 className="text-4xl md:text-5xl font-extralight tracking-widest uppercase">
             Sobre Nosotros

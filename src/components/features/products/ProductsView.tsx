@@ -20,7 +20,7 @@ export const ProductsView = () => {
     <div className="min-h-screen pt-20 bg-white">
       <div className="max-w-6xl mx-auto px-8 py-16">
         <div className="flex justify-between items-center mb-12">
-          <h1 className="text-3xl md:text-5xl font-extralight tracking-widest text-black uppercase">Colección</h1>
+          <h1 className="text-3xl md:text-4xl font-extralight tracking-widest text-black uppercase">Colección</h1>
           
           {/* Botón de filtros móvil */}
           <button

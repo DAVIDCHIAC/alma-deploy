@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-const API_BASE = (import.meta as any).env?.VITE_API_BASE || "http://localhost:8000"
+const API_BASE = (import.meta as any).env?.VITE_API_BASE
 import { Plus, Edit2, Trash2, FolderTree, AlertCircle } from "lucide-react"
-import { toast } from "sonner"
+import { addToast } from "@heroui/react"
 
 export const Categories = () => {
   const [categories, setCategories] = useState<string[]>([])
@@ -49,11 +49,11 @@ export const Categories = () => {
   const addCategory = async () => {
     const name = newCategory.trim()
     if (!name) {
-      toast.error("Ingresa un nombre válido")
+      addToast({ title: "Error", description: "Ingresa un nombre válido", timeout: 3000 })
       return
     }
     if (categories.includes(name)) {
-      toast.error("Esta categoría ya existe")
+      addToast({ title: "Error", description: "Esta categoría ya existe", timeout: 3000 })
       return
     }
     try {
@@ -66,9 +66,9 @@ export const Categories = () => {
       const cat = await res.json()
       setCategories((prev) => [...prev, cat.name])
       setNewCategory("")
-      toast.success("Categoría agregada")
+      addToast({ title: "Categoría agregada", description: "Se creó la categoría", timeout: 3000 })
     } catch {
-      toast.error("No se pudo agregar la categoría")
+      addToast({ title: "Error", description: "No se pudo agregar la categoría", timeout: 3000 })
     }
   }
 
@@ -81,7 +81,7 @@ export const Categories = () => {
     const oldName = editingCategory
     const newName = editingValue.trim()
     if (!oldName || !newName) {
-      toast.error("Nombre inválido")
+      addToast({ title: "Error", description: "Nombre inválido", timeout: 3000 })
       setEditingCategory(null)
       setEditingValue("")
       return
@@ -92,7 +92,7 @@ export const Categories = () => {
       return
     }
     if (categories.includes(newName) && newName !== oldName) {
-      toast.error("Esta categoría ya existe")
+      addToast({ title: "Error", description: "Esta categoría ya existe", timeout: 3000 })
       return
     }
     try {
@@ -109,16 +109,16 @@ export const Categories = () => {
       setCategories((prev) => prev.map((c) => (c === oldName ? newName : c)))
       setEditingCategory(null)
       setEditingValue("")
-      toast.success("Categoría actualizada")
+      addToast({ title: "Categoría actualizada", description: "Se guardaron los cambios", timeout: 3000 })
     } catch {
-      toast.error("No se pudo actualizar la categoría")
+      addToast({ title: "Error", description: "No se pudo actualizar la categoría", timeout: 3000 })
     }
   }
 
   const deleteCategory = async (name: string) => {
     const count = categoryCounts[name] || 0
     if (count > 0) {
-      toast.error(`No puedes eliminar una categoría con ${count} productos`)
+      addToast({ title: "Error", description: `No puedes eliminar una categoría con ${count} productos`, timeout: 3000 })
       return
     }
     try {
@@ -129,9 +129,9 @@ export const Categories = () => {
       const res = await fetch(`${API_BASE}/api/categories/${cat.id}`, { method: "DELETE", headers: { Accept: "application/json" } })
       if (!res.ok) throw new Error()
       setCategories((prev) => prev.filter((c) => c !== name))
-      toast.success("Categoría eliminada")
+      addToast({ title: "Categoría eliminada", description: "Se eliminó la categoría", timeout: 3000 })
     } catch {
-      toast.error("No se pudo eliminar la categoría")
+      addToast({ title: "Error", description: "No se pudo eliminar la categoría", timeout: 3000 })
     }
   }
 

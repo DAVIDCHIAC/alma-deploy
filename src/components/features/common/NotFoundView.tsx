@@ -9,7 +9,7 @@ export const NotFoundView = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen pt-20 bg-zinc-100 flex items-center justify-center">
+    <div className="min-h-screen pt-20 bg-white flex items-center justify-center">
       <div className="text-center p-8">
         <h1 className="text-6xl md:text-7xl font-extralight tracking-widest mb-6 text-black">404</h1>
         <p className="text-base md:text-lg font-light tracking-wide mb-8 text-black/60">Página no encontrada</p>

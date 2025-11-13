@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from "react"
 import { Link } from "react-router-dom"
 import { useCart } from "@/context/CartContext"
-import { toast } from "sonner"
 import type { FilterState } from "./ProductFilters"
+import { Skeleton, addToast } from "@heroui/react"
 
 type AdminProduct = {
   id: number
@@ -26,7 +26,7 @@ const ProductList = ({ limit, showViewAll = false, filters }: Props) => {
   const { addToCart } = useCart()
   const [products, setProducts] = useState<AdminProduct[]>([])
   const [loading, setLoading] = useState(false)
-  const API_BASE = (import.meta as any).env?.VITE_API_BASE || "http://localhost:8000"
+  const API_BASE = (import.meta as any).env?.VITE_API_BASE
 
   const resolveImageUrl = (img?: string | null) => {
     if (!img) return "/placeholder.svg"
@@ -87,9 +87,37 @@ const ProductList = ({ limit, showViewAll = false, filters }: Props) => {
 
   const items = limit ? filtered.slice(0, limit) : filtered
 
+  const formatCOP = (n: number) => `COP ${new Intl.NumberFormat('es-CO', { minimumFractionDigits: 0 }).format(n)}`
+
   return (
     <section className="w-full">
+      
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {loading && Array.from({ length: limit ? Math.min(limit, 8) : 8 }).map((_, i) => (
+          <div key={`skeleton-${i}`} className="group">
+            <div className="aspect-square overflow-hidden bg-zinc-50 mb-4">
+              <Skeleton>
+                <div className="w-full h-full bg-default-300" />
+              </Skeleton>
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="w-1/3">
+                <div className="h-3 w-full bg-default-200" />
+              </Skeleton>
+              <Skeleton className="w-3/4">
+                <div className="h-4 w-full bg-default-200" />
+              </Skeleton>
+              <Skeleton className="w-1/4">
+                <div className="h-3 w-full bg-default-300" />
+              </Skeleton>
+            </div>
+            <div className="mt-4">
+              <Skeleton className="w-1/2">
+                <div className="h-9 w-full bg-default-300" />
+              </Skeleton>
+            </div>
+          </div>
+        ))}
         {!loading && items.map((p) => {
           const img = (Array.isArray(p.images) && p.images.length ? p.images[0] : p.image) || null
           return (
@@ -100,7 +128,7 @@ const ProductList = ({ limit, showViewAll = false, filters }: Props) => {
                 </div>
                 <p className="text-xs font-normal tracking-wide mb-1.5 text-black/60 uppercase">{p.category}</p>
                 <h3 className="text-sm font-light tracking-wide mb-1.5 text-black">{p.name}</h3>
-                <p className="text-sm font-normal tracking-wide text-[#314737]">{p.price_label ?? ""}</p>
+                <p className="text-sm font-normal tracking-wide text-[#314737]">{formatCOP(getPriceNumber(p))}</p>
               </Link>
               <div className="mt-4">
                 <button
@@ -115,9 +143,9 @@ const ProductList = ({ limit, showViewAll = false, filters }: Props) => {
                       description: p.description ?? "",
                       specifications: Array.isArray(p.specifications) ? p.specifications : [],
                     })
-                    toast.success("Producto agregado al carrito")
+                    addToast({ title: "Producto agregado", description: "El producto fue agregado al carrito", timeout: 3000 })
                   }}
-                  className="border border-[#314737] text-[#314737] px-4 py-2 text-sm tracking-wide uppercase font-light hover:bg-[#314737] hover:text-white transition-colors"
+                  className="border border-[#314737]/70 text-[#314737] px-4 py-2 text-sm tracking-wide uppercase font-light hover:bg-[#314737] hover:text-white transition-colors"
                 >
                   Agregar al carrito
                 </button>

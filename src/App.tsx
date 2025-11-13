@@ -5,6 +5,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { routes, adminRoutes } from "@/routes";
 import { CartProvider } from "@/context/CartContext";
+import { Providers } from "@/styles/providers";
 import { RequireAuth, RequireAdmin } from "@/components/auth/RouteGuards";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const TitleManager = () => {
 
 const App = () => (
   <CartProvider>
+    <Providers>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <TitleManager />
@@ -50,6 +52,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
+    </Providers>
   </CartProvider>
 );
 

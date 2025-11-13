@@ -6,7 +6,7 @@ import {CartView} from "@/components/features/cart";
 import { AboutView } from "@/components/features/about";
 import { ProfileView } from "@/components/features/profile";
 import { PaymentResponse } from "@/components/features/checkout";
-import { Dashboard, Products as AdminProducts, Orders, Settings, Categories } from "@/components/features/admin";
+import { Dashboard, Products as AdminProducts, Orders, Users, Categories } from "@/components/features/admin";
   
 export interface AppRoute {
   path: string;
@@ -31,5 +31,5 @@ export const adminRoutes: AppRoute[] = [
   { path: "/admin/categories", element: Categories, title: "Admin: Categorías | Alma" },
   { path: "/admin/products", element: AdminProducts, title: "Admin: Productos | Alma" },
   { path: "/admin/orders", element: Orders, title: "Admin: Pedidos | Alma" },
-  { path: "/admin/settings", element: Settings, title: "Admin: Configuración | Alma" },
+  { path: "/admin/users", element: Users, title: "Admin: Usuarios | Alma" },
 ];

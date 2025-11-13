@@ -1,6 +1,6 @@
 export { Dashboard } from "./Dashboard"
 export { Orders } from "./Orders"
 export { Products } from "./Products"
-export { Settings } from "./Settings"
+export { Users } from "./Users"
 export { CreateProduct } from "./CreateProduct"
 export { Categories } from "./Categories"

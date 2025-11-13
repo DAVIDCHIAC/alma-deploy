@@ -1,9 +1,9 @@
-import { toast } from "sonner";
+import { addToast } from "@heroui/react";
 
 export const ContactView = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Mensaje enviado. Nos pondremos en contacto pronto.");
+    addToast({ title: "Mensaje enviado", description: "Nos pondremos en contacto pronto.", timeout: 3000 });
   };
 
   return (

@@ -1,156 +1,115 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { Eye, Download, Plus, Tag, Trash2, Edit2 } from "lucide-react"
+import { Eye, Download, Plus } from "lucide-react"
 import { Link } from "react-router-dom"
 import CreateProduct from "./CreateProduct"
+import { addToast } from "@heroui/react"
+
+type OrderItem = { id: number; name: string; price_number?: number; quantity: number }
+type UserSummary = { id: number; name: string; email: string; address?: string }
+type Order = {
+  id: number
+  items: OrderItem[]
+  subtotal: number
+  taxes: number
+  total: number
+  status: string
+  epayco_ref?: string | null
+  epayco_invoice?: string | null
+  created_at: string
+  user?: UserSummary | null
+}
 
 export const Orders = () => {
-  const defaultCategories = ["Seamaster", "Constellation", "Speedmaster", "De Ville"]
   const [showProductModal, setShowProductModal] = useState(false)
+  const API_BASE = (import.meta as any).env?.VITE_API_BASE || "https://bao-unsignified-nonprudently.ngrok-free.dev"
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(false)
+  const [selected, setSelected] = useState<Order | null>(null)
+  const [statusFilter, setStatusFilter] = useState<string>("")
+  const [updating, setUpdating] = useState(false)
+  const [newStatus, setNewStatus] = useState<string>("")
 
-  const [categories, setCategories] = useState<string[]>(() => {
-    const raw = localStorage.getItem("alma_admin_categories")
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw) as string[]
-        return parsed.length ? parsed : defaultCategories
-      } catch {
-        return defaultCategories
-      }
-    }
-    return defaultCategories
-  })
-
-  const [newCategory, setNewCategory] = useState("")
-
-  const orders = [
-    {
-      id: "#ORD-001",
-      date: "15 Dic 2024",
-      customer: "María García",
-      email: "maria.garcia@email.com",
-      product: "Seamaster Professional",
-      quantity: 1,
-      status: "Pendiente",
-      amount: "€5,900",
-      shipping: "Calle Mayor 123, Madrid",
-    },
-    {
-      id: "#ORD-002",
-      date: "14 Dic 2024",
-      customer: "Carlos Ruiz",
-      email: "carlos.ruiz@email.com",
-      product: "Speedmaster Moonwatch",
-      quantity: 1,
-      status: "Enviado",
-      amount: "€6,500",
-      shipping: "Av. Diagonal 456, Barcelona",
-    },
-    {
-      id: "#ORD-003",
-      date: "13 Dic 2024",
-      customer: "Ana López",
-      email: "ana.lopez@email.com",
-      product: "Constellation Co-Axial",
-      quantity: 1,
-      status: "Entregado",
-      amount: "€7,200",
-      shipping: "Gran Vía 789, Valencia",
-    },
-    {
-      id: "#ORD-004",
-      date: "12 Dic 2024",
-      customer: "Pedro Martínez",
-      email: "pedro.martinez@email.com",
-      product: "De Ville Prestige",
-      quantity: 1,
-      status: "Pendiente",
-      amount: "€4,800",
-      shipping: "Paseo de Gracia 321, Barcelona",
-    },
-  ]
-
-  const statusColors = {
-    Pendiente: "bg-yellow-100 text-yellow-800",
-    Enviado: "bg-blue-100 text-blue-800",
-    Entregado: "bg-green-100 text-green-800",
-    Cancelado: "bg-red-100 text-red-800",
+  const statusColors: Record<string, string> = {
+    pending_payment: "bg-yellow-100 text-yellow-800",
+    paid: "bg-green-100 text-green-800",
+    processing: "bg-blue-100 text-blue-800",
+    shipped: "bg-blue-100 text-blue-800",
+    delivered: "bg-green-100 text-green-800",
+    cancelled: "bg-red-100 text-red-800",
+    rejected: "bg-red-100 text-red-800",
+    failed: "bg-red-100 text-red-800",
   }
 
-  const products: { id: number; name: string; collection: string }[] = (() => {
-    const raw = localStorage.getItem("alma_admin_products")
-    if (!raw) return []
+  const fetchOrders = async () => {
+    setLoading(true)
     try {
-      return JSON.parse(raw)
+      const token = localStorage.getItem("auth_token")
+      const url = new URL(`${API_BASE}/api/orders`)
+      if (statusFilter) url.searchParams.set("status", statusFilter)
+      const res = await fetch(url.toString(), {
+        headers: { Accept: "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}), "ngrok-skip-browser-warning": "1" },
+      })
+      if (!res.ok) throw new Error("Error al cargar pedidos")
+      const data = await res.json()
+      const arr: Order[] = Array.isArray(data) ? data : []
+      setOrders(arr)
+      if (!selected && arr.length) setSelected(arr[0])
     } catch {
-      return []
+      setOrders([])
+    } finally {
+      setLoading(false)
     }
-  })()
-
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {}
-    products.forEach((p) => {
-      counts[p.collection] = (counts[p.collection] || 0) + 1
-    })
-    categories.forEach((c) => {
-      if (counts[c] === undefined) counts[c] = 0
-    })
-    return counts
-  }, [products, categories])
-
-  const [editingCategory, setEditingCategory] = useState<string | null>(null)
-  const [editingValue, setEditingValue] = useState("")
-
-  const startEditCategory = (name: string) => {
-    setEditingCategory(name)
-    setEditingValue(name)
   }
 
-  const saveEditCategory = () => {
-    const oldName = editingCategory
-    const newName = editingValue.trim()
-    if (!oldName || !newName) {
-      setEditingCategory(null)
-      setEditingValue("")
-      return
-    }
-    if (oldName === newName) {
-      setEditingCategory(null)
-      setEditingValue("")
-      return
-    }
-    setCategories((prev) => prev.map((c) => (c === oldName ? newName : c)))
-    const raw = localStorage.getItem("alma_admin_products")
-    const existing = raw ? (JSON.parse(raw) as any[]) : []
-    const updatedProducts = existing.map((p) => (p.collection === oldName ? { ...p, collection: newName } : p))
-    localStorage.setItem("alma_admin_products", JSON.stringify(updatedProducts))
-    setEditingCategory(null)
-    setEditingValue("")
-  }
-
-  const deleteCategory = (name: string) => {
-    setCategories((prev) => prev.filter((c) => c !== name))
-  }
+  useEffect(() => {
+    fetchOrders()
+  }, [statusFilter])
 
   const stats = useMemo(() => {
     const total = orders.length
-    const pendiente = orders.filter((o) => o.status === "Pendiente").length
-    const enviado = orders.filter((o) => o.status === "Enviado").length
-    const entregado = orders.filter((o) => o.status === "Entregado").length
+    const pendiente = orders.filter((o) => o.status === "pending_payment").length
+    const enviado = orders.filter((o) => o.status === "shipped").length
+    const entregado = orders.filter((o) => o.status === "delivered").length
     return { total, pendiente, enviado, entregado }
   }, [orders])
 
-  useEffect(() => {
-    localStorage.setItem("alma_admin_categories", JSON.stringify(categories))
-  }, [categories])
+  const formatCOP = (n: number) => `COP ${new Intl.NumberFormat('es-CO', { minimumFractionDigits: 0 }).format(n)}`
+  const labelForStatus = (s: string) => {
+    if (s === "pending_payment") return "Pendiente"
+    if (s === "paid") return "Pagado"
+    if (s === "processing") return "Procesando"
+    if (s === "shipped") return "Enviado"
+    if (s === "delivered") return "Entregado"
+    if (s === "cancelled") return "Cancelado"
+    if (s === "rejected") return "Rechazado"
+    if (s === "failed") return "Fallido"
+    return s
+  }
 
-  const addCategory = () => {
-    const name = newCategory.trim()
-    if (!name) return
-    if (categories.includes(name)) return
-    setCategories((prev) => [name, ...prev])
-    setNewCategory("")
+  const updateSelectedStatus = async () => {
+    if (!selected) return
+    const token = localStorage.getItem("auth_token")
+    if (!token) return
+    const next = newStatus || selected.status
+    setUpdating(true)
+    try {
+      const res = await fetch(`${API_BASE}/api/orders/${selected.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json', Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "1" },
+        body: JSON.stringify({ status: next }),
+      })
+      if (!res.ok) throw new Error('Error al actualizar estado')
+      const ord = await res.json()
+      setOrders((prev) => prev.map((o) => (o.id === ord.id ? ord : o)))
+      setSelected(ord)
+      addToast({ title: 'Estado actualizado', description: `Pedido #${ord.id} → ${labelForStatus(ord.status)}`, timeout: 3000 })
+    } catch {
+      addToast({ title: 'Error', description: 'No se pudo actualizar el estado', timeout: 3000 })
+    } finally {
+      setUpdating(false)
+    }
   }
 
   return (
@@ -159,27 +118,27 @@ export const Orders = () => {
         <div className="flex justify-between items-start mb-12">
           <div>
             <h1 className="text-4xl font-extralight tracking-[0.3em] mb-2 text-luxury-text uppercase">Pedidos</h1>
-            <p className="text-muted-foreground tracking-wider">Gestiona todos los pedidos de la tienda</p>
+            <p className="text-muted-foreground tracking-wider cursor-pointer">Gestiona todos los pedidos de la tienda</p>
           </div>
-          <div className="flex items-center gap-2">
-            <button className="border border-gray-200 px-6 py-3 text-sm tracking-[0.12em] uppercase font-light hover:bg-luxury-gray/60 transition-colors flex items-center gap-2 rounded-md">
-              <Download size={18} />
-              Exportar
-            </button>
-            <button
-              onClick={() => setShowProductModal(true)}
-              className="bg-luxury-green text-white px-6 py-3 text-sm tracking-[0.12em] uppercase font-light hover:opacity-90 transition-opacity flex items-center gap-2 rounded-md"
-            >
-              <Plus size={18} />
-              Nuevo Producto
-            </button>
-            <Link
-              to="/admin/products"
-              className="border border-gray-200 px-6 py-3 text-sm tracking-[0.12em] uppercase font-light hover:bg-luxury-gray/60 transition-colors flex items-center gap-2 rounded-md"
-            >
-              Gestionar Productos
-            </Link>
-          </div>
+        <div className="flex items-center gap-2">
+          <button className="border border-gray-200 px-6 py-3 text-sm tracking-[0.12em] uppercase font-light hover:bg-luxury-gray/60 transition-colors flex items-center gap-2 rounded-md">
+            <Download size={18} />
+            Exportar
+          </button>
+          <button
+            onClick={() => setShowProductModal(true)}
+            className="bg-luxury-green text-white px-6 py-3 text-sm tracking-[0.12em] uppercase font-light hover:opacity-90 transition-opacity flex items-center gap-2 rounded-md"
+          >
+            <Plus size={18} />
+            Nuevo Producto
+          </button>
+          <Link
+            to="/admin/products"
+            className="border border-gray-200 px-6 py-3 text-sm tracking-[0.12em] uppercase font-light hover:bg-luxury-gray/60 transition-colors flex items-center gap-2 rounded-md"
+          >
+            Gestionar Productos
+          </Link>
+        </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -203,16 +162,21 @@ export const Orders = () => {
 
         <div className="flex justify-between items-center mb-6">
           <div className="flex gap-4">
-            <select className="px-4 py-2 border border-gray-200 bg-white text-sm tracking-wide focus:outline-none focus:ring-1 focus:ring-luxury-burgundy transition-colors rounded-md">
-              <option>Todos los estados</option>
-              <option>Pendiente</option>
-              <option>Enviado</option>
-              <option>Entregado</option>
-              <option>Cancelado</option>
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-4 py-2 border border-gray-200 bg-white text-sm tracking-wide focus:outline-none focus:ring-1 focus:ring-luxury-burgundy transition-colors rounded-md">
+              <option value="">Todos los estados</option>
+              <option value="pending_payment">Pendiente</option>
+              <option value="paid">Pagado</option>
+              <option value="processing">Procesando</option>
+              <option value="shipped">Enviado</option>
+              <option value="delivered">Entregado</option>
+              <option value="cancelled">Cancelado</option>
+              <option value="rejected">Rechazado</option>
+              <option value="failed">Fallido</option>
             </select>
             <input
               type="date"
               className="px-4 py-2 border border-gray-200 bg-white text-sm tracking-wide focus:outline-none focus:ring-1 focus:ring-luxury-burgundy transition-colors rounded-md"
+              disabled
             />
           </div>
 
@@ -247,171 +211,102 @@ export const Orders = () => {
             <table className="w-full">
               <thead className="bg-luxury-gray">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs tracking-[0.15em] text-luxury-text uppercase font-light">
-                    ID Pedido
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs tracking-[0.15em] text-luxury-text uppercase font-light">
-                    Fecha
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs tracking-[0.15em] text-luxury-text uppercase font-light">
-                    Cliente
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs tracking-[0.15em] text-luxury-text uppercase font-light">
-                    Producto
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs tracking-[0.15em] text-luxury-text uppercase font-light">
-                    Estado
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs tracking-[0.15em] text-luxury-text uppercase font-light">
-                    Monto
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs tracking-[0.15em] text-luxury-text uppercase font-light">
-                    Acciones
-                  </th>
+                  <th className="px-6 py-4 text-left text-xs tracking-[0.15em] text-luxury-text uppercase font-light">ID Pedido</th>
+                  <th className="px-6 py-4 text-left text-xs tracking-[0.15em] text-luxury-text uppercase font-light">Fecha</th>
+                  <th className="px-6 py-4 text-left text-xs tracking-[0.15em] text-luxury-text uppercase font-light">Cliente</th>
+                  <th className="px-6 py-4 text-left text-xs tracking-[0.15em] text-luxury-text uppercase font-light">Producto</th>
+                  <th className="px-6 py-4 text-left text-xs tracking-[0.15em] text-luxury-text uppercase font-light">Estado</th>
+                  <th className="px-6 py-4 text-left text-xs tracking-[0.15em] text-luxury-text uppercase font-light">Monto</th>
+                  <th className="px-6 py-4 text-left text-xs tracking-[0.15em] text-luxury-text uppercase font-light">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {orders.map((order, index) => (
-                  <tr key={index} className="hover:bg-luxury-gray/30 transition-colors">
-                    <td className="px-6 py-5 text-sm tracking-wide font-light">{order.id}</td>
-                    <td className="px-6 py-5 text-sm tracking-wide font-light">{order.date}</td>
-                    <td className="px-6 py-5">
-                      <div>
-                        <p className="text-sm tracking-wide font-light">{order.customer}</p>
-                        <p className="text-xs tracking-wide text-muted-foreground">{order.email}</p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 text-sm tracking-wide font-light">{order.product}</td>
-                    <td className="px-6 py-5">
-                      <span
-                        className={`inline-block px-3 py-1 text-xs tracking-wider uppercase ${
-                          statusColors[order.status as keyof typeof statusColors]
-                        }`}
-                      >
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-5 text-sm tracking-wide font-light">{order.amount}</td>
-                    <td className="px-6 py-5">
-                      <button className="border border-gray-200 px-3 py-1 text-xs tracking-wider uppercase hover:bg-luxury-gray/60 transition-colors flex items-center gap-2 rounded-md">
-                        <Eye size={14} />
-                        Ver
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {loading ? (
+                  <tr><td className="px-6 py-5 text-sm" colSpan={7}>Cargando pedidos...</td></tr>
+                ) : orders.length === 0 ? (
+                  <tr><td className="px-6 py-5 text-sm" colSpan={7}>No hay pedidos</td></tr>
+                ) : (
+                  orders.map((order) => {
+                    const first = Array.isArray(order.items) && order.items.length ? order.items[0] : null
+                    const productLabel = first ? `${first.name} ${first.quantity ? `x${first.quantity}` : ''}` : `${order.items.length} ítems`
+                    const when = new Date(order.created_at)
+                    const dateLabel = when.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
+                    const customer = order.user?.name || `Usuario ${order.user?.id ?? ''}`
+                    const email = order.user?.email || ''
+                    const statusClass = statusColors[order.status] || 'bg-gray-100 text-gray-800'
+                    return (
+                      <tr key={order.id} className="hover:bg-luxury-gray/30 transition-colors">
+                        <td className="px-6 py-5 text-sm tracking-wide font-light">#{order.id}</td>
+                        <td className="px-6 py-5 text-sm tracking-wide font-light">{dateLabel}</td>
+                        <td className="px-6 py-5">
+                          <div>
+                            <p className="text-sm tracking-wide font-light">{customer}</p>
+                            <p className="text-xs tracking-wide text-muted-foreground">{email}</p>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5 text-sm tracking-wide font-light">{productLabel}</td>
+                        <td className="px-6 py-5">
+                          <span className={`inline-block px-3 py-1 text-xs tracking-wider uppercase ${statusClass}`}>{labelForStatus(order.status)}</span>
+                        </td>
+                        <td className="px-6 py-5 text-sm tracking-wide font-light">{formatCOP(order.total)}</td>
+                        <td className="px-6 py-5">
+                          <button onClick={() => setSelected(order)} className="border cursor-pointer border-gray-200 px-3 py-1 text-xs tracking-wider uppercase hover:bg-luxury-gray/60 transition-colors flex items-center gap-2 rounded-md">
+                            <Eye size={14} />
+                            Ver
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
               </tbody>
             </table>
           </div>
         </div>
 
-        <div className="mt-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-extralight tracking-[0.2em] text-luxury-text uppercase flex items-center gap-2">
-              <Tag size={16} /> Categorías
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-2">
-              <div className="flex flex-wrap gap-2">
-                {categories.map((c) => (
-                  <div
-                    key={c}
-                    className="flex items-center gap-2 px-3 py-1 text-xs tracking-wider border border-gray-200 rounded-md bg-white"
-                  >
-                    {editingCategory === c ? (
-                      <input
-                        value={editingValue}
-                        onChange={(e) => setEditingValue(e.target.value)}
-                        className="px-2 py-1 border border-gray-200 rounded"
-                      />
-                    ) : (
-                      <span>{c}</span>
-                    )}
-                    <span className="text-muted-foreground">({categoryCounts[c] ?? 0})</span>
-                    {editingCategory === c ? (
-                      <button onClick={saveEditCategory} className="px-2 py-1 bg-luxury-green text-white rounded">
-                        Guardar
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => startEditCategory(c)}
-                        className="text-muted-foreground hover:text-luxury-text"
-                      >
-                        <Edit2 size={14} />
-                      </button>
-                    )}
-                    <button onClick={() => deleteCategory(c)} className="text-destructive hover:text-destructive/80">
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-                placeholder="Nueva categoría"
-                className="flex-1 px-3 py-2 border border-gray-200 bg-white text-xs tracking-wide focus:outline-none focus:ring-1 focus:ring-luxury-burgundy transition-colors rounded-md"
-              />
-              <button
-                onClick={addCategory}
-                className="bg-luxury-burgundy text-white px-4 py-2 text-xs tracking-[0.12em] uppercase font-light hover:opacity-90 transition-opacity rounded-md"
-              >
-                Añadir
-              </button>
-            </div>
-          </div>
-        </div>
+
 
         <div className="mt-6 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-2xl font-extralight tracking-[0.2em] mb-6 text-luxury-text uppercase">
             Detalle del Pedido
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-xs tracking-[0.15em] text-luxury-text uppercase mb-4 font-light">
-                Información del Cliente
-              </h3>
-              <div className="space-y-2 text-sm tracking-wide">
-                <p>
-                  <span className="text-muted-foreground">Nombre:</span> María García
-                </p>
-                <p>
-                  <span className="text-muted-foreground">Email:</span> maria.garcia@email.com
-                </p>
-                <p>
-                  <span className="text-muted-foreground">Teléfono:</span> +34 612 345 678
-                </p>
+          {selected ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="text-xs tracking-[0.15em] text-luxury-text uppercase mb-4 font-light">Información del Cliente</h3>
+                <div className="space-y-2 text-sm tracking-wide">
+                  <p>
+                    <span className="text-muted-foreground">Nombre:</span> {selected.user?.name || `Usuario ${selected.user?.id ?? ''}`}
+                  </p>
+                  <p>
+                    <span className="text-muted-foreground">Email:</span> {selected.user?.email || ''}
+                  </p>
+                </div>
+              </div>
+              <div>
+                <h3 className="text-xs tracking-[0.15em] text-luxury-text uppercase mb-4 font-light">Dirección de Envío</h3>
+                <p className="text-sm tracking-wide leading-relaxed">{selected.user?.address || 'No registrada'}</p>
               </div>
             </div>
-            <div>
-              <h3 className="text-xs tracking-[0.15em] text-luxury-text uppercase mb-4 font-light">
-                Dirección de Envío
-              </h3>
-              <p className="text-sm tracking-wide leading-relaxed">
-                Calle Mayor 123, 4°A
-                <br />
-                28013 Madrid
-                <br />
-                España
-              </p>
-            </div>
-          </div>
+          ) : (
+            <p className="text-sm tracking-wide text-muted-foreground">Selecciona un pedido para ver el detalle.</p>
+          )}
           <div className="mt-6 pt-6 border-t border-gray-200">
             <h3 className="text-xs tracking-[0.15em] text-luxury-text uppercase mb-4 font-light">Actualizar Estado</h3>
             <div className="flex gap-4">
-              <select className="px-4 py-2 border border-gray-200 bg-white text-sm tracking-wide focus:outline-none focus:ring-1 focus:ring-luxury-burgundy transition-colors rounded-md">
-                <option>Pendiente</option>
-                <option>Procesando</option>
-                <option>Enviado</option>
-                <option>Entregado</option>
-                <option>Cancelado</option>
+              <select value={newStatus} onChange={(e) => setNewStatus(e.target.value)} className="px-4 py-2 border border-gray-200 bg-white text-sm tracking-wide focus:outline-none focus:ring-1 focus:ring-luxury-burgundy transition-colors rounded-md" disabled={!selected || updating}>
+                <option value="">{selected ? labelForStatus(selected.status) : 'Selecciona un pedido'}</option>
+                <option value="pending_payment">Pendiente</option>
+                <option value="paid">Pagado</option>
+                <option value="processing">Procesando</option>
+                <option value="shipped">Enviado</option>
+                <option value="delivered">Entregado</option>
+                <option value="cancelled">Cancelado</option>
+                <option value="rejected">Rechazado</option>
+                <option value="failed">Fallido</option>
               </select>
-              <button className="bg-luxury-green text-white px-6 py-2 text-sm tracking-[0.12em] uppercase font-light hover:opacity-90 transition-opacity rounded-md">
-                Actualizar
+              <button onClick={updateSelectedStatus} disabled={!selected || updating || !newStatus} className="bg-luxury-green text-white px-6 py-2 text-sm tracking-[0.12em] uppercase font-light hover:opacity-90 transition-opacity rounded-md disabled:opacity-50">
+                {updating ? 'Actualizando...' : 'Actualizar'}
               </button>
             </div>
           </div>

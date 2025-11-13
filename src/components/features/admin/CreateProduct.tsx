@@ -5,7 +5,7 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { ArrowLeft, X, Upload, Trash2, GripVertical } from "lucide-react"
-import { toast } from "sonner"
+import { addToast } from "@heroui/react"
 
 type CreateProductProps = {
   mode?: "create" | "edit"
@@ -36,14 +36,15 @@ export const CreateProduct = ({
   onSaved,
 }: CreateProductProps) => {
   const navigate = useNavigate()
-  const API_BASE = (import.meta as any).env?.VITE_API_BASE || "http://localhost:8000"
+  const API_BASE = (import.meta as any).env?.VITE_API_BASE
   const [categories, setCategories] = useState<string[]>([])
   const [category, setCategory] = useState<string>("")
   const [name, setName] = useState("")
+  
   useEffect(() => {
     const loadCats = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/categories`, { headers: { Accept: "application/json" } })
+        const res = await fetch(`${API_BASE}/api/categories`, { headers: { Accept: "application/json", "ngrok-skip-browser-warning": "1" } })
         const data = await res.json()
         const names = Array.isArray(data) ? data.map((c: any) => c.name) : []
         setCategories(names)
@@ -174,7 +175,7 @@ export const CreateProduct = ({
     e?.preventDefault?.()
 
     if (!name || !price || stock === "" || images.length === 0) {
-      toast.error("Completa nombre, precio, stock y al menos una imagen")
+      addToast({ title: "Error", description: "Completa nombre, precio, stock y al menos una imagen", timeout: 3000 })
       return
     }
 
@@ -229,13 +230,13 @@ export const CreateProduct = ({
         specsArray.forEach((s) => fd.append("specifications[]", s))
         res = await fetch(url, {
           method,
-          headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
+          headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest", "ngrok-skip-browser-warning": "1" },
           body: fd,
         })
       } else {
         res = await fetch(url, {
           method,
-          headers: { "Content-Type": "application/json", Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
+          headers: { "Content-Type": "application/json", Accept: "application/json", "X-Requested-With": "XMLHttpRequest", "ngrok-skip-browser-warning": "1" },
           body: JSON.stringify(payload),
         })
       }
@@ -243,13 +244,13 @@ export const CreateProduct = ({
         if (res.status === 422) {
           const err = await res.json().catch(() => null)
           const messages = err?.errors ? Object.values(err.errors).flat() : [err?.message || "Datos inválidos"]
-          toast.error(String(messages[0] || "Verifica los campos obligatorios"))
+          addToast({ title: "Error", description: String(messages[0] || "Verifica los campos obligatorios"), timeout: 3000 })
           return
         }
         throw new Error("Error al guardar el producto")
       }
       const saved = await res.json()
-      toast.success(mode === "edit" ? "Producto actualizado" : "Producto creado")
+      addToast({ title: mode === "edit" ? "Producto actualizado" : "Producto creado", description: "Operación exitosa", timeout: 3000 })
 
       if (asModal) {
         onSaved?.(saved)
@@ -258,7 +259,7 @@ export const CreateProduct = ({
         navigate("/admin/products")
       }
     } catch (err) {
-      toast.error("No se pudo guardar el producto")
+      addToast({ title: "Error", description: "No se pudo guardar el producto", timeout: 3000 })
     }
   }
 

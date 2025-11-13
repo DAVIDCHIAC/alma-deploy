@@ -11,7 +11,6 @@ export const HomeView = () => {
         className="transparent relative h-screen flex items-center justify-center bg-fixed bg-center bg-cover"
         style={{ backgroundImage: `url(${bgOne})` }}
       >
-       <div className="absolute inset-0 bg-black/70"></div>
         <div className="absolute bottom-8 inset-x-0 z-10 px-8">
           <div className="max-w-7xl mx-auto flex justify-center lg:justify-end">
             <div className="text-white text-center lg:text-right">

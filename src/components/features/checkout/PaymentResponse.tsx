@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useCart } from "@/context/CartContext";
 import { NotFoundView } from "@/components/features/common";
 
@@ -8,6 +8,10 @@ export const PaymentResponse = () => {
   const { clearCart } = useCart();
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [orderStatus, setOrderStatus] = useState<string | null>(null);
+  const attemptsRef = useRef(0);
+  const timerRef = useRef<number | null>(null);
+  const pollingRef = useRef(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -28,12 +32,64 @@ export const PaymentResponse = () => {
           return;
         }
         setPaymentInfo(payload);
-        setLoading(false);
+        const orderId = localStorage.getItem('last_order_id');
+        const xref = payload?.x_ref_payco ?? payload?.ref_payco ?? payload?.reference ?? null;
+        const invoice = payload?.x_id_invoice ?? payload?.invoice ?? null;
+        if (orderId && xref) {
+          const token = localStorage.getItem('auth_token') || '';
+          fetch(`/api/orders/${orderId}/epayco/ref`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+            body: JSON.stringify({ ref: String(xref), invoice: invoice ? String(invoice) : undefined }),
+          }).catch(() => {});
+          fetch(`/api/orders/sync-status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ order_id: Number(orderId), ref: String(xref) }),
+          })
+            .then((r) => r.json())
+            .then((res) => {
+              const ord = res?.order ?? res;
+              if (ord && typeof ord.status === 'string') {
+                setOrderStatus(ord.status);
+              }
+              setLoading(false);
+              if (ord?.status === 'pending_payment' && !pollingRef.current) {
+                pollingRef.current = true;
+                const poll = () => {
+                  if (attemptsRef.current >= 6) return;
+                  attemptsRef.current += 1;
+                  fetch(`/api/orders/${orderId}`)
+                    .then((r) => r.json())
+                    .then((o) => {
+                      if (o && typeof o.status === 'string') {
+                        setOrderStatus(o.status);
+                      }
+                      if (o?.status === 'paid' || o?.status === 'rejected' || o?.status === 'failed') {
+                        return;
+                      }
+                      timerRef.current = window.setTimeout(poll, 3000);
+                    })
+                    .catch(() => {
+                      if (attemptsRef.current < 6) {
+                        timerRef.current = window.setTimeout(poll, 3000);
+                      }
+                    });
+                };
+                timerRef.current = window.setTimeout(poll, 3000);
+              }
+            })
+            .catch(() => {
+              setLoading(false);
+            });
+        } else {
+          setLoading(false);
+        }
 
         // Normalize possible state fields
-        const state = payload?.x_transaction_state ?? payload?.transaction_state ?? payload?.state ?? payload?.x_response ?? null;
-        const acceptedStates = ["Aceptada", "Aceptado", "APPROVED", "approved"];
-        if (state && acceptedStates.includes(String(state))) {
+        const state = payload?.x_response ?? payload?.x_transaction_state ?? payload?.transaction_state ?? payload?.state ?? null;
+        const acceptedStates = ["Aceptada", "Aceptado", "Aceptada Test", "APPROVED", "approved"];
+        if ((state && acceptedStates.includes(String(state))) || orderStatus === 'paid') {
           clearCart();
         }
       })
@@ -42,6 +98,17 @@ export const PaymentResponse = () => {
         setLoading(false);
       });
   }, [clearCart]);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      pollingRef.current = false;
+      attemptsRef.current = 0;
+    };
+  }, []);
 
   const formatPrice = (price: number) => {
     const currency = paymentInfo?.x_currency_code ?? paymentInfo?.currency ?? paymentInfo?.x_currency ?? "COP";
@@ -65,8 +132,12 @@ export const PaymentResponse = () => {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <div className="mb-6">
             <h2 className="text-xl font-light tracking-wider mb-2 text-luxury-text">Estado de la transacción</h2>
-            <p className={(paymentInfo?.x_transaction_state ?? paymentInfo?.transaction_state ?? paymentInfo?.state) === "Aceptada" ? "text-green-600" : "text-red-600"}>
-              {(paymentInfo?.x_transaction_state ?? paymentInfo?.transaction_state ?? paymentInfo?.state) ?? 'Desconocido'}
+            <p className={(
+              ["Aceptada", "Aceptado", "Aceptada Test", "APPROVED", "approved"].includes(
+                String((paymentInfo?.x_response ?? paymentInfo?.x_transaction_state ?? paymentInfo?.transaction_state ?? paymentInfo?.state) ?? '')
+              ) || orderStatus === 'paid'
+            ) ? "text-green-600" : "text-red-600"}>
+              {orderStatus ?? (paymentInfo?.x_response ?? paymentInfo?.x_transaction_state ?? paymentInfo?.transaction_state ?? paymentInfo?.state) ?? 'Desconocido'}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

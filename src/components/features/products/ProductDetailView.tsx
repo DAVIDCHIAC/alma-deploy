@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
-import { toast } from "sonner";
+import { addToast } from "@heroui/react";
 import { NotFoundView } from "@/components/features/common";
 import { useEffect, useMemo, useState } from "react";
 
@@ -22,7 +22,8 @@ export const ProductDetailView = () => {
   const { addToCart } = useCart();
   const [product, setProduct] = useState<AdminProduct | null>(null);
   const [loading, setLoading] = useState(false);
-  const API_BASE = (import.meta as any).env?.VITE_API_BASE || "http://localhost:8000";
+  
+  const API_BASE = (import.meta as any).env?.VITE_API_BASE;
 
   const resolveImageUrl = (img?: string | null) => {
     if (!img) return "/placeholder.svg";
@@ -77,7 +78,7 @@ export const ProductDetailView = () => {
       description: product.description ?? "",
       specifications: Array.isArray(product.specifications) ? product.specifications : [],
     });
-    toast.success("Producto agregado al carrito");
+    addToast({ title: "Producto agregado", description: "El producto fue agregado al carrito", timeout: 3000 });
   };
 
   if (!loading && !product) return <NotFoundView />;

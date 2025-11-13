@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ChevronDown, X } from "lucide-react";
+import { Skeleton } from "@heroui/react";
 
 type FilterProps = {
   onFilterChange: (filters: FilterState) => void;
@@ -13,7 +14,7 @@ export type FilterState = {
   sortBy: string;
 };
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE || "http://localhost:8000";
+const API_BASE = (import.meta as any).env?.VITE_API_BASE;
 const CACHE_KEY = "alma_filters_categories_cache";
 const CACHE_TTL = 1000 * 60 * 60 * 12;
 
@@ -35,6 +36,7 @@ const sortOptions = [
 export const ProductFilters = ({ onFilterChange, onClose, isMobile = false }: FilterProps) => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>(["Todos"]);
   const [availableCategories, setAvailableCategories] = useState<string[]>(["Todos"]);
+  const [loadingCats, setLoadingCats] = useState(true);
   const [selectedPriceRange, setSelectedPriceRange] = useState("all");
   const [selectedSort, setSelectedSort] = useState("newest");
   const [expandedSections, setExpandedSections] = useState({
@@ -51,17 +53,21 @@ export const ProductFilters = ({ onFilterChange, onClose, isMobile = false }: Fi
           const parsed = JSON.parse(raw) as { names: string[]; ts: number };
           if (Array.isArray(parsed.names) && parsed.ts && Date.now() - parsed.ts < CACHE_TTL) {
             setAvailableCategories(["Todos", ...parsed.names]);
+            setLoadingCats(false);
             return;
           }
         }
+        setLoadingCats(true);
         const res = await fetch(`${API_BASE}/api/categories`, { headers: { Accept: "application/json" } });
         if (!res.ok) throw new Error();
         const data = await res.json();
         const names = Array.isArray(data) ? data.map((c: any) => c.name) : [];
         setAvailableCategories(["Todos", ...names]);
         localStorage.setItem(CACHE_KEY, JSON.stringify({ names, ts: Date.now() }));
+        setLoadingCats(false);
       } catch {
         setAvailableCategories(["Todos"]);
+        setLoadingCats(false);
       }
     };
     load();
@@ -139,7 +145,35 @@ export const ProductFilters = ({ onFilterChange, onClose, isMobile = false }: Fi
       )}
 
       <div className={isMobile ? "px-6 py-6" : ""}>
-        {/* Categorías */}
+        {loadingCats ? (
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <Skeleton className="w-2/5 rounded-lg"><div className="h-4 w-2/5 rounded-lg bg-default-200" /></Skeleton>
+              <div className="space-y-3">
+                <Skeleton className="w-3/5 rounded-lg"><div className="h-3 w-3/5 rounded-lg bg-default-300" /></Skeleton>
+                <Skeleton className="w-4/5 rounded-lg"><div className="h-3 w-4/5 rounded-lg bg-default-200" /></Skeleton>
+                <Skeleton className="w-2/5 rounded-lg"><div className="h-3 w-2/5 rounded-lg bg-default-300" /></Skeleton>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <Skeleton className="w-2/5 rounded-lg"><div className="h-4 w-2/5 rounded-lg bg-default-200" /></Skeleton>
+              <div className="space-y-3">
+                <Skeleton className="w-3/5 rounded-lg"><div className="h-3 w-3/5 rounded-lg bg-default-300" /></Skeleton>
+                <Skeleton className="w-4/5 rounded-lg"><div className="h-3 w-4/5 rounded-lg bg-default-200" /></Skeleton>
+                <Skeleton className="w-2/5 rounded-lg"><div className="h-3 w-2/5 rounded-lg bg-default-300" /></Skeleton>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <Skeleton className="w-2/5 rounded-lg"><div className="h-4 w-2/5 rounded-lg bg-default-200" /></Skeleton>
+              <div className="space-y-3">
+                <Skeleton className="w-3/5 rounded-lg"><div className="h-3 w-3/5 rounded-lg bg-default-300" /></Skeleton>
+                <Skeleton className="w-4/5 rounded-lg"><div className="h-3 w-4/5 rounded-lg bg-default-200" /></Skeleton>
+                <Skeleton className="w-2/5 rounded-lg"><div className="h-3 w-2/5 rounded-lg bg-default-300" /></Skeleton>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
         <div className="border-b border-black/10 pb-6 mb-6">
           <button
             onClick={() => toggleSection("category")}
@@ -182,7 +216,6 @@ export const ProductFilters = ({ onFilterChange, onClose, isMobile = false }: Fi
           )}
         </div>
 
-        {/* Rango de precio */}
         <div className="border-b border-black/10 pb-6 mb-6">
           <button
             onClick={() => toggleSection("price")}
@@ -222,7 +255,6 @@ export const ProductFilters = ({ onFilterChange, onClose, isMobile = false }: Fi
           )}
         </div>
 
-        {/* Ordenar por */}
         <div className="pb-6 mb-6">
           <button
             onClick={() => toggleSection("sort")}
@@ -261,14 +293,14 @@ export const ProductFilters = ({ onFilterChange, onClose, isMobile = false }: Fi
             </div>
           )}
         </div>
-
-        {/* Limpiar filtros */}
-        <button
+       <button
           onClick={clearFilters}
           className="w-full py-2 text-sm tracking-wide text-[#314737] hover:text-black border border-black/20 hover:border-black/40 transition-colors uppercase"
         >
           Limpiar filtros
         </button>
+      </>
+      )}
       </div>
     </div>
   );
