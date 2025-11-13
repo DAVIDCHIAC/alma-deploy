@@ -156,7 +156,7 @@ export const Categories = () => {
             />
             <button
               onClick={addCategory}
-              className="bg-luxury-green text-white px-8 py-3 text-sm tracking-[0.12em] uppercase font-light hover:opacity-90 transition-opacity flex items-center gap-2 rounded-md"
+              className="border border-gray-200 px-6 py-3 text-sm tracking-[0.12em] uppercase font-light hover:bg-luxury-gray/60 transition-colors flex items-center gap-2 rounded-md"
             >
               <Plus size={18} />
               Agregar
