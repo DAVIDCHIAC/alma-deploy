@@ -34,7 +34,7 @@ export const ProductsView = () => {
 
         <div className="flex gap-12">
           {/* Filtros desktop */}
-          <aside className="hidden lg:block w-64 flex-shrink-0">
+          <aside className="hidden lg:block w-64 shrink-0">
             <ProductFilters onFilterChange={handleFilterChange} />
           </aside>
 

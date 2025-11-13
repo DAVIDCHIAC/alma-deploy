@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -166,7 +166,7 @@ export const CartView = () => {
     <div className="min-h-screen pt-20 bg-white">
       <div className="max-w-[1400px] mx-auto px-8 py-16">
         <div className="flex justify-between items-center mb-12">
-          <h1 className="text-4xl font-light tracking-[0.38em] text-luxury-text">
+          <h1 className="text-4xl md:text-5xl font-extralight tracking-widest mb-8 uppercase">
             CARRITO DE COMPRA
           </h1>
           <button

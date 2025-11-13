@@ -74,6 +74,11 @@ const Navbar = () => {
   useEffect(() => {
     setIsMenuOpen(false);
     setIsProfileOpen(false);
+    try {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch {
+      window.scrollTo(0, 0);
+    }
   }, [location.pathname]);
 
   const handleLogout = async () => {
@@ -181,7 +186,7 @@ const Navbar = () => {
                 </button>
                 
                 <div 
-                  className={`absolute right-0 mt-3 w-64 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 origin-top-right z-[10000] ${
+                  className={`absolute right-0 mt-3 w-64 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 origin-top-right z-10000 ${
                     isProfileOpen 
                       ? 'opacity-100 scale-100 translate-y-0' 
                       : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'

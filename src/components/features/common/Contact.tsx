@@ -1,4 +1,3 @@
-import { Mail, Phone, MapPin } from "lucide-react";
 import { toast } from "sonner";
 
 export const ContactView = () => {
@@ -11,7 +10,7 @@ export const ContactView = () => {
     <div className="min-h-screen bg-white pt-24 md:pt-32">
       <div className="max-w-6xl mx-auto px-8 py-16">
         <div className="justify-center">
-          <h1 className="text-3xl md:text-5xl font-extralight tracking-wider mb-4 text-center text-luxury-text">CONTACTO</h1>
+                        <h1 className="text-4xl md:text-5xl text-center font-extralight tracking-widest mb-8 uppercase">CONTACTO</h1>
           <p className="text-center pb-16 text-muted-foreground tracking-wide">Estamos aquí para ayudarte</p>
         </div>
 

@@ -10,7 +10,7 @@ export const AboutView = () => {
       >
         <div className="absolute inset-0 bg-black/40" />
         <div className="relative z-10 text-center text-white px-8">
-          <h1 className="text-4xl md:text-6xl font-extralight tracking-widest uppercase">
+          <h1 className="text-4xl md:text-5xl font-extralight tracking-widest uppercase">
             Sobre Nosotros
           </h1>
         </div>

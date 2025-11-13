@@ -28,14 +28,14 @@ export const ProfileView = () => {
       <div className="max-w-4xl mx-auto px-8 py-16">
         {/* Header */}
         <div className="flex justify-between items-center mb-12">
-          <h1 className="text-4xl font-extralight tracking-[0.3em] text-black uppercase">
+          <h1 className="text-4xl md:text-5xl font-extralight tracking-widest mb-8 uppercase">
             Mi Perfil
           </h1>
           
           {!isEditing && (
             <button
               onClick={() => setIsEditing(true)}
-              className="flex items-center gap-2 px-6 py-2 border border-black/20 text-sm tracking-[0.1em] uppercase hover:border-black/40 transition-colors"
+              className="flex items-center gap-2 px-6 py-2 border border-black/20 text-sm tracking-widest uppercase hover:border-black/40 transition-colors"
             >
               <Edit2 size={16} />
               Editar
@@ -52,7 +52,7 @@ export const ProfileView = () => {
               </div>
               
               {isEditing && (
-                <button className="text-sm tracking-[0.1em] text-black/60 uppercase hover:text-black transition-colors">
+                <button className="text-sm tracking-widest text-black/60 uppercase hover:text-black transition-colors">
                   Cambiar foto
                 </button>
               )}
@@ -144,7 +144,7 @@ export const ProfileView = () => {
                 </button>
                 <button
                   onClick={handleCancel}
-                  className="flex items-center gap-2 px-8 py-3 border border-black/20 text-sm tracking-[0.1em] uppercase hover:border-black/40 transition-colors"
+                  className="flex items-center gap-2 px-8 py-3 border border-black/20 text-sm tracking-widest uppercase hover:border-black/40 transition-colors"
                 >
                   <X size={16} />
                   Cancelar
@@ -168,14 +168,14 @@ export const ProfileView = () => {
               >
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <p className="text-sm tracking-[0.1em] uppercase text-black/60 mb-1">
+                    <p className="text-sm tracking-widest uppercase text-black/60 mb-1">
                       Pedido #{1000 + order}
                     </p>
                     <p className="text-lg tracking-[0.05em] text-black">
                       Reloj Classic Edition
                     </p>
                   </div>
-                  <span className="text-sm tracking-[0.1em] uppercase text-[#314737]">
+                  <span className="text-sm tracking-widest uppercase text-[#314737]">
                     Entregado
                   </span>
                 </div>

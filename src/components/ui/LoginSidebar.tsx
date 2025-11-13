@@ -98,12 +98,12 @@ export const LoginSidebar = ({ isOpen, onClose }: LoginSidebarProps) => {
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/50 z-[9998] transition-opacity"
+        className="fixed inset-0 bg-black/50 z-9998 transition-opacity"
         onClick={onClose}
       />
 
       <div
-        className="fixed inset-y-0 right-0 w-full sm:max-w-md bg-white z-[9999] shadow-2xl flex flex-col"
+        className="fixed inset-y-0 right-0 w-full sm:max-w-md bg-white z-9999 shadow-2xl flex flex-col"
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}

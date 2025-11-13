@@ -11,12 +11,11 @@ export const HomeView = () => {
         className="transparent relative h-screen flex items-center justify-center bg-fixed bg-center bg-cover"
         style={{ backgroundImage: `url(${bgOne})` }}
       >
-       <div className="absolute inset-0 bg-black/50"></div>
-        <div className="absolute inset-0 bg-black/30" />
+       <div className="absolute inset-0 bg-black/70"></div>
         <div className="absolute bottom-8 inset-x-0 z-10 px-8">
-          <div className="max-w-6xl mx-auto flex justify-center lg:justify-end">
+          <div className="max-w-7xl mx-auto flex justify-center lg:justify-end">
             <div className="text-white text-center lg:text-right">
-              <h1 className="text-4xl md:text-6xl font-extralight tracking-widest mb-8 uppercase">
+              <h1 className="text-4xl md:text-5xl font-extralight tracking-widest mb-8 uppercase">
                 Accesorios que realzan tu esencia
               </h1>
               <p className="text-base md:text-lg font-light tracking-wide mb-12 opacity-95">
@@ -36,11 +35,11 @@ export const HomeView = () => {
         className="transparent relative min-h-screen overflow-hidden flex items-center bg-fixed bg-center bg-cover"
         style={{ backgroundImage: `url(${bgTwo})` }}
       >
-        <div className="absolute inset-0 bg-black/50" />
+      <div className="absolute inset-0 bg-black/70"></div>
         <div className="absolute bottom-8 inset-x-0 z-10 px-8">
-          <div className="max-w-6xl mx-auto flex justify-center lg:justify-end">
-            <div className="text-white text-center lg:text-right">
-              <h2 className="text-4xl md:text-6xl font-extralight tracking-widest mb-8">
+          <div className="max-w-7xl mx-auto flex justify-center lg:justify-start">
+            <div className="text-white text-center lg:text-left">
+              <h2 className="text-4xl md:text-5xl font-extralight tracking-widest mb-8">
                 CALIDAD Y ESTILO
               </h2>
               <p className="text-base md:text-lg font-light tracking-wide leading-8 max-w-xl opacity-95">
@@ -53,7 +52,7 @@ export const HomeView = () => {
       </section>
 
       <section className="py-32 px-8 max-w-6xl mx-auto">
-        <h2 className="text-3xl md:text-5xl font-extralight tracking-wider text-center mb-20 text-black">
+        <h2 className="text-3xl md:text-4xl font-extralight tracking-wider text-center mb-20 text-black">
           COLECCIONES DESTACADAS
         </h2>
         <div className="max-w-4xl mx-auto">
