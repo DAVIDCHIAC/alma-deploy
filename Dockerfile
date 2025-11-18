@@ -1,7 +1,7 @@
 # -------------------------------
 # 1. Build de Node para Vite
 # -------------------------------
-FROM node:18 AS build
+FROM node:20 AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install
