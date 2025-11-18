@@ -8,14 +8,16 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install
 
-# Copiar el resto del frontend necesario
+# Copiar frontend y configs
 COPY src ./src
 COPY public ./public
 COPY index.html ./
 COPY vite.config.ts ./
+COPY tsconfig.json tsconfig.app.json tsconfig.node.json ./
 
-# Build de Vite
+# Build de Vite + TypeScript
 RUN npm run build
+
 
 # -------------------------------
 # 2. Build de PHP para Laravel
