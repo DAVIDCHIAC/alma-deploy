@@ -10,7 +10,8 @@ RUN npm install
 
 # Copiar el resto del frontend
 COPY resources ./resources
-COPY vite.config.js ./
+COPY vite.config.ts ./
+
 COPY index.html ./
 
 RUN npm run build
