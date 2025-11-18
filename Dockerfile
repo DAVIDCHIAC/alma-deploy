@@ -48,6 +48,3 @@ COPY Caddyfile /etc/caddy/Caddyfile
 CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
 
 
-WORKDIR /var/www/html
-
-CMD ["/usr/bin/supervisord"]
