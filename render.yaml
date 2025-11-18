@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: alma
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    instances: 1
+    autoDeploy: true
+    # Opcional: ejecuta migraciones después del deploy (requiere DB vars configuradas)
+    releaseCommand: php artisan migrate --force || true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        # - value: base64:...  <- pega aquí tu APP_KEY cuando la generes
+        # Si NO la pones aquí, el container generará una key, pero es mejor fijarla.
+        value: ""
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        value: ""
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_DATABASE
+        value: ""
+      - key: DB_USERNAME
+        value: ""
+      - key: DB_PASSWORD
+        value: ""
+      - key: VITE_BACKEND_URL
+        value: "https://your-service.onrender.com"
+      - key: APP_URL
+        value: "https://your-service.onrender.com"
