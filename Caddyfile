@@ -1,6 +1,5 @@
-:8080
-
-root * /srv/app/public
-encode gzip
-php_fastcgi 127.0.0.1:9000
-file_server
+:80 {
+    root * /srv/app/public
+    file_server
+    php_fastcgi localhost:9000
+}
