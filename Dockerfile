@@ -1,35 +1,46 @@
-# Etapa 1: PHP + Composer
-FROM php:8.2-fpm AS backend
+# Usa PHP 8.2 con FPM
+FROM php:8.2-fpm
 
-# Instalar dependencias del sistema
+# Instala dependencias del sistema
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
-    libpq-dev \
+    curl \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
     libzip-dev \
-    zip
+    npm
 
-# Instalar extensiones de PHP
-RUN docker-php-ext-install pdo pdo_mysql zip
+# Configura extensión GD para imágenes si la usas
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+RUN docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip
 
-# Composer
+# Instala Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Copiar solo el backend donde está Laravel
+# Copia el proyecto al contenedor
 WORKDIR /var/www/html
-COPY backend/ ./
+COPY . .
 
-RUN composer install --optimize-autoloader --no-dev
+# Instala dependencias de PHP (Laravel)
+RUN composer install --no-dev --optimize-autoloader
 
-# Etapa 2: Nginx (servidor web)
-FROM nginx:stable
+# Instala dependencias de Node y construye los assets con Vite
+RUN npm install
+RUN npm run build
 
-# Copiar configuración básica
-COPY backend/docker/nginx.conf /etc/nginx/conf.d/default.conf
+# Genera la APP_KEY
+RUN php artisan key:generate --force
 
-# Copiar Laravel ya construido
-COPY --from=backend /var/www/html /var/www/html
+# Da permisos a storage y bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-EXPOSE 80
+# Expone el puerto 8080 (puedes cambiar si quieres otro)
+EXPOSE 8080
 
-CMD ["nginx", "-g", "daemon off;"]
+# Comando para arrancar Laravel
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8080"]
