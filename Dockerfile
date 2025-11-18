@@ -41,10 +41,9 @@ RUN php artisan config:cache && php artisan route:cache
 FROM caddy:2
 WORKDIR /srv/app
 
-COPY --from=0 /app /srv/app
+# ESTA ES LA LÍNEA CORRECTA
+COPY --from=1 /app /srv/app
 
 COPY Caddyfile /etc/caddy/Caddyfile
 
 CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
-
-
